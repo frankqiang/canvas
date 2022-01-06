@@ -25,24 +25,52 @@
         var ctx = canvas.getContext("2d");
         // 设置填充色
         ctx.fillStyle = "black";
-        ctx.strokeStyle = "none";
-        canvas.onmousedown = () => {
-            painting = true;
+        //设置描边样式
+        ctx.strokeStyle = "black";
+        // 设置描边宽度
+        ctx.lineWidth = "10";
+        // 设置 线条末端为圆形
+        ctx.lineCap = "round";
+        // 声明一个数组用来记录每一点击后的坐标
+        let previous = [];
+        var isTouchDevice = 'ontouchstart' in document.documentElement;
+
+        function drawLine(x1, y1, x2, y2) {
+            // 开始划线
+            ctx.beginPath();
+            // 起始坐标
+            ctx.moveTo(x1, y1)
+                // 结束坐标
+            ctx.lineTo(x2, y2);
+            // 描边
+            ctx.stroke();
         }
-        canvas.onmousemove = (e) => {
-            if (painting) {
-                // 开始画圆
-                ctx.beginPath();
-                // 设置圆心、半径、角度(这里是0-360度)
-                ctx.arc(e.clientX, e.clientY, 10, 0, 2 * Math.PI);
-                // 描边
-                ctx.stroke();
-                // 填充
-                ctx.fill();
+
+        if (isTouchDevice) {
+            canvas.ontouchstart = (e) => {
+                // 把点击屏幕的坐标给数组保存起来           
+                previous = [e.touches[0].clientX, e.touches[0].clientY];
             }
-        }
-        canvas.onmouseup = () => {
-            painting = false;
+            canvas.ontouchmove = (e) => {
+                // 使用第一次点击屏幕的坐标作为开始坐标，使用移动手指后的坐标最为结束坐标   
+                drawLine(previous[0], previous[1], e.touches[0].clientX, e.touches[0].clientY);
+                // 把移动手指后的坐标给数组，到下一次有作为开始坐标
+                previous = [e.touches[0].clientX, e.touches[0].clientY];
+            }
+        } else {
+            canvas.onmousedown = (e) => {
+                painting = true;
+                previous = [e.clientX, e.clientY];
+            }
+            canvas.onmousemove = (e) => {
+                if (painting) {
+                    drawLine(previous[0], previous[1], e.clientX, e.clientY);
+                    previous = [e.clientX, e.clientY];
+                }
+            }
+            canvas.onmouseup = () => {
+                painting = false;
+            }
         }
     </script>
 </body>
